@@ -7,6 +7,7 @@ export function getSocket() {
   if (socket) return socket;
 
   const savedSessionID = localStorage.getItem("sessionID");
+  console.log("Saved session ID from localStorage:", savedSessionID);
 
   socket = io("http://localhost:3001", {
     transports: ["websocket"],
