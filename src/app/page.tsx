@@ -1,10 +1,10 @@
 "use client"
 
 import Image from "next/image";
-import RoomLobby from "../components/RoomLobby";
+import Lobby from "../components/Lobby";
 import { getSocket } from "../lib/socket";
 import { useEffect, useState } from "react";
-import { RoomLobbyProps } from "../components/RoomLobby";
+import { LobbyProps } from "../components/Lobby";
 
 
 export default function Home() {
@@ -40,7 +40,7 @@ export default function Home() {
     }
   };
 
-  const roomLobbyProps: RoomLobbyProps = {
+  const lobbyProps: LobbyProps = {
     onHostRoom: handleHostRoom,
     onJoinRoom: handleJoinRoom,
     isLoadingHost,
@@ -54,7 +54,7 @@ export default function Home() {
 
   return (
     <div>
-      <RoomLobby {...roomLobbyProps} />
+      <Lobby {...lobbyProps} />
     </div>
   );
 }
