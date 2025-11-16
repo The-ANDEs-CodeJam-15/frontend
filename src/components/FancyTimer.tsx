@@ -6,25 +6,32 @@ type FancyTimerProps = {
 };
 
 const FancyTimer: React.FC<FancyTimerProps> = ({ timeRemaining, totalTime }) => {
-  const percentage = (timeRemaining / totalTime) * 100
-  const isUrgent = timeRemaining <= 3;
-  const circumference = 2 * Math.PI * 54; // radius = 54
+  // Add guards for undefined/null/0 values
+  const safeTimeRemaining = Math.max(0, timeRemaining || 0);
+  const safeTotalTime = Math.max(1, totalTime || 1); // Prevent division by zero
+  
+  const percentage = (safeTimeRemaining / safeTotalTime) * 100;
+  const isUrgent = safeTimeRemaining <= 3;
+  const circumference = 2 * Math.PI * 54;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
+
+  const prevTimeRef = React.useRef(safeTimeRemaining);
+  const animate = safeTimeRemaining < prevTimeRef.current;
+
+  useEffect(() => {
+    prevTimeRef.current = safeTimeRemaining;
+  }, [safeTimeRemaining]);
 
   return (
     <div className="flex flex-col items-center justify-center py-8">
-      {/* Circular Timer */}
       <div className="relative">
-        {/* Glow effect */}
         <div
           className={`absolute inset-0 rounded-full blur-xl transition-all duration-300 ${
             isUrgent ? "bg-red-500/20" : "bg-emerald-500/20"
           }`}
         />
 
-        {/* SVG Circle */}
         <svg className="relative transform -rotate-90" width="140" height="140">
-          {/* Background circle */}
           <circle
             cx="70"
             cy="70"
@@ -35,7 +42,6 @@ const FancyTimer: React.FC<FancyTimerProps> = ({ timeRemaining, totalTime }) => 
             className="text-neutral-800"
           />
 
-          {/* Progress circle */}
           <circle
             cx="70"
             cy="70"
@@ -46,13 +52,12 @@ const FancyTimer: React.FC<FancyTimerProps> = ({ timeRemaining, totalTime }) => 
             strokeDasharray={circumference}
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
-            className={`transition-all duration-1000 ease-linear ${
+            className={`${animate ? "transition-all duration-1000 ease-linear" : ""} ${
               isUrgent ? "text-red-500" : "text-emerald-500"
             }`}
           />
         </svg>
 
-        {/* Time display in center */}
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
             <div
@@ -60,14 +65,14 @@ const FancyTimer: React.FC<FancyTimerProps> = ({ timeRemaining, totalTime }) => 
                 isUrgent ? "text-red-500 animate-pulse" : "text-neutral-50"
               }`}
             >
-              {timeRemaining}
+              {safeTimeRemaining}
             </div>
           </div>
         </div>
       </div>
-
     </div>
   );
 };
 
 export default FancyTimer;
+

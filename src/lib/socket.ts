@@ -6,7 +6,11 @@ let socket: Socket | null = null;
 export function getSocket() {
   if (socket) return socket;
 
-  const savedSessionID = localStorage.getItem("sessionID");
+  // Check if we're in the browser
+  const savedSessionID = typeof window !== "undefined" 
+    ? localStorage.getItem("sessionID") 
+    : null;
+  
   console.log("Saved session ID from localStorage:", savedSessionID);
 
   socket = io("http://localhost:3001", {
@@ -18,7 +22,10 @@ export function getSocket() {
   });
 
   socket.on("session", ({ sessionID }) => {
-    localStorage.setItem("sessionID", sessionID);
+    // Only access localStorage in browser
+    if (typeof window !== "undefined") {
+      localStorage.setItem("sessionID", sessionID);
+    }
     socket!.auth = { sessionID };
   });
 

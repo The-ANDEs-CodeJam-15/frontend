@@ -8,6 +8,7 @@ export type LobbyProps = {
   setUserName: React.Dispatch<React.SetStateAction<string>>;
   isLoadingHost?: boolean;
   isLoadingJoin?: boolean;
+  inRoom?: boolean;
   errorMessage?: string;
 };
 
@@ -18,6 +19,7 @@ const Lobby: React.FC<LobbyProps> = ({
   setUserName,
   isLoadingJoin = false,
   isLoadingHost = false,
+  inRoom = false,
   errorMessage = null,
 }) => {
   const [enteredCode, setEnteredCode] = useState("");
@@ -51,7 +53,8 @@ const Lobby: React.FC<LobbyProps> = ({
         )}
 
         {/* Enter userName */}
-        <div className="mb-4">
+        <div className="mb-4 space-y-2">
+          <h3 className="text-sm font-medium">Enter a username</h3>
           <input
             type="text"
             placeholder="Username"
@@ -68,7 +71,7 @@ const Lobby: React.FC<LobbyProps> = ({
           <h3 className="text-sm font-medium">Host a room</h3>
           <button
             onClick={handleHost}
-            disabled={isLoadingHost}
+            disabled={isLoadingHost || inRoom}
             className="flex w-full items-center justify-center rounded-full
             bg-emerald-400
             px-3 py-2 text-sm font-medium hover:bg-blue-200 text-black transition disabled:cursor-not-allowed disabled:opacity-60"
@@ -105,19 +108,17 @@ const Lobby: React.FC<LobbyProps> = ({
         setEnteredCode(e.target.value.toUpperCase().slice(0, CODE_LENGTH))
       }
       className="
-        
         w-full rounded-xl border border-neutral-700 bg-neutral-900 px-3 py-2
         text-sm text-transparent caret-neutral-100 outline-none
         ring-0 transition focus:border-neutral-400 font-mono
         tracking-[0.36em]
-         
       "
           />
   </div>
 
           <button
             type="submit"
-            disabled={isLoadingJoin || !enteredCode.trim()}
+            disabled={isLoadingJoin || !enteredCode.trim() || inRoom}
             className="flex w-full items-center justify-center rounded-full bg-blue-500 px-3 py-2 text-sm font-medium text-white transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isLoadingJoin ? "Joining..." : "Join room"}
