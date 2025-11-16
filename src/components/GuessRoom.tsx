@@ -12,7 +12,7 @@ export type GuessProps = {
   setEntry: React.Dispatch<React.SetStateAction<string>>;
   dropDownData: Song[]
   onSelectSong: (song: Song) => void;
-  onSubmitSong: (trackID: number) => void;
+  onSubmitSong: (song?: Song) => void;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   isBlocked: boolean;
   setIsBlocked: any;
@@ -58,11 +58,12 @@ const GuessRoom: React.FC<GuessProps> = ({
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-neutral-950 relative px-6">
+    <main className="flex min-h-screen items-start justify-center bg-neutral-950 relative px-6">
       <div className="flex flex-col items-center gap-4 w-full max-w-md">
         {guessed && <h1 className={`text-xl font-extrabold"> ${isCorrect ? "text-emerald-500" : "text-red-500"} `}>
-          {isCorrect ? `Correct! +${newCurses} curses` : "Incorrect."}
+          {isCorrect ? `Correct! +${newCurses} Curses` : "Incorrect."}
         </h1>}
+        {!guessed && <h1 className={`text-xl font-extrabold text-gray-500">`}></h1>}
         {/* Center Column */}
         <div className="flex flex-col items-center gap-6">
 

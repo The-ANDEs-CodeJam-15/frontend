@@ -7,7 +7,7 @@ export type SongSearchProps = {
     setEntry: (value: string) => void;
     dropDownData: Song[];
     onSelectSong: (song: Song) => void;
-    onSubmitSong: (trackID: number) => void;
+    onSubmitSong: (song?: Song) => void;
     handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     isBlocked: boolean;
     setIsBlocked: any;
@@ -34,7 +34,7 @@ const SongSearch: React.FC<SongSearchProps> = ({
 
     const submit = () => {
         setIsBlocked(true);
-        onSubmitSong(selectedSong ? selectedSong.trackID : 0)
+        onSubmitSong(selectedSong)
     }
     return (
         <div className="w-full max-w-md relative">

@@ -11,15 +11,20 @@ export type CurseProps = {
   players: Player[];
   curses: Curse[];
   onClickPlayer: ({ opSessionID }: { opSessionID: string }) => void
+  selectedCurseIndex: number;
   setSelectedCurseIndex: React.Dispatch<React.SetStateAction<number>>;
 };
+
+
 
 const CurseRoom: React.FC<CurseProps> = ({
   players,
   curses,
   onClickPlayer, //For clicking on a player; curses if a curse selected
+  selectedCurseIndex,
   setSelectedCurseIndex //Set state for curse index declared in page
 }) => {
+
   const totalTime = 10;
   const [timeRemaining, setTimeRemaining] = useState(totalTime);
 
@@ -49,7 +54,7 @@ const CurseRoom: React.FC<CurseProps> = ({
   }));
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-neutral-950 relative px-6">
+    <main className="flex min-h-screen items-start justify-center bg-neutral-950 relative px-6">
 
       {/* Center Column */}
       <div className="flex flex-col items-center gap-6">
@@ -59,16 +64,21 @@ const CurseRoom: React.FC<CurseProps> = ({
           {playerIconPropsArray.map((props) => (
             <PlayerIcon key={props.player.sessionID} {...props} />
           ))}
-
         </div>
 
-        {/* Curses */}
-        <div className="flex flex-col gap-2 w-full">
-          <span className="font-bold text-neutral-100 text-left w-full">Your curses:</span>
-          <div className="flex gap-4">
-            {curseIconPropsArray.map((props) => (
-              <CurseIcon key={props.curse.curseIndex} {...props} />
-            ))}
+        <div className="flex flex-col items-center">
+          {
+            selectedCurseIndex >= 0 && (<h3 className="text-white text-center">Choose a player to curse with {curses[selectedCurseIndex].curseName}</h3>)
+          }
+
+          {/* Curses */}
+          <div className="flex flex-col gap-2 w-full">
+            <span className="font-bold text-neutral-100 text-center w-full">Your curses:</span>
+            <div className="flex gap-4 items-start justify-center">
+              {curseIconPropsArray.map((props) => (
+                <CurseIcon key={props.curse.curseIndex} {...props} />
+              ))}
+            </div>
           </div>
         </div>
       </div>

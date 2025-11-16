@@ -7,11 +7,13 @@ import CurseRoom from "../../components/CurseRoom";
 import GuessRoom from "../../components/GuessRoom";
 import ResultRoom from "../../components/ResultRoom";
 import LoadingRoom from "../../components/LoadingRoom";
+import EndRoom from "../../components/EndRoom";
 import { CurseProps } from "../../components/CurseRoom";
 import { Curse, Player } from "@/src/lib/types";
 import { ResultProps } from "../../components/ResultRoom";
 import { Song } from "@/src/lib/types";
 import { GuessProps } from "../../components/GuessRoom";
+import { EndProps } from "../../components/EndRoom";
 
 
 export default function Game() {
@@ -30,10 +32,13 @@ export default function Game() {
     const curseSequence = 2;
     const guessingSequence = 3;
     const resultsSequence = 4;
+    const end = 5;
 
     let appliedCurses: string[] = []
 
     const [totalTime, setTotalTime] = useState(0)
+    const [currentRound, setCurrentRound] = useState(0);
+    const [totalRounds, setTotalRounds] = useState(0);
     const [timeRemaining, setTimeRemaining] = useState(0)
     const [currentSong, setCurrentSong] = useState<Song | undefined>(undefined);
     const [currentSongAudio, setCurrentSongAudio] = useState(null);
@@ -47,7 +52,7 @@ export default function Game() {
     const [isBlocked, setIsBlocked] = useState(false);
     const [isCorrect, setIsCorrect] = useState(false);
     const [guessed, setGuessed] = useState(false);
-    const [newCurses, setNewCuses] = useState(0);
+    const [newCurses, setNewCurses] = useState(0);
 
     const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
@@ -72,14 +77,15 @@ export default function Game() {
     }
 
     const onClickPlayer = ({ opSessionID }: { opSessionID: string }) => {
-        if (selectedCurseIndex >= 0) {
+        if (selectedCurseIndex >= 0 && curses.length > 0) {
             doCurse({ opSessionID })
         }
     }
 
-    const onInitialCountdown = ({ players }: { players: Player[] }) => {
+    const onInitialCountdown = ({ players, totalRounds }: { players: Player[], totalRounds: number }) => {
         console.log("Setting players")
         setPlayers(players);
+        setTotalRounds(totalRounds)
         console.log("Initial countdown starting!")
         setGameState(initialCountdown)
     }
@@ -108,7 +114,7 @@ export default function Game() {
                 console.log("Audio loaded, initializing AudioEngine context");
                 if (engineRef.current) {
                     engineRef.current._ensureContext(); // Force context creation
-                    console.log("AudioEngine ready for curses!");
+                    console.log("AudioEngine ready for curses");
                 }
             };
         }
@@ -124,7 +130,7 @@ export default function Game() {
         setIsBlocked(false);
         setIsCorrect(false);
         setGuessed(false);
-        setNewCuses(0);
+        setNewCurses(0);
         
         console.log("Guessing sequence starting");
         setGameState(guessingSequence);
@@ -196,22 +202,35 @@ export default function Game() {
         setEntry(newEntry);
     };
 
-    const onSubmitSong = (trackID: number) => {
-        console.log("Submitting", trackID)
-        socket.emit("submit_guess", { trackID })
+    const onSubmitSong = (song?: Song) => {
+        if (!song){
+            setIsBlocked(false)
+            return
+        }
+        console.log("Submitting", song.trackID)
+        socket.emit("submit_guess", { song })
     }
 
     const onCorrectGuess = ({ newCurses }: { newCurses: number}) => {
         setIsBlocked(true);
         setIsCorrect(true);
         setGuessed(true);
-        setNewCuses(newCurses);
+        setNewCurses(newCurses);
     }
     
     const onIncorrectGuess = () => {
         setIsBlocked(false);
         setIsCorrect(false);
         setGuessed(true);
+    }
+
+    const onUpdateRound = ({ currentRound }: { currentRound: number }) => {
+        setCurrentRound(currentRound)
+    }
+
+    const onEndGame = ({ players }: { players: Player[] }) => {
+        setPlayers(players);
+        setGameState(end);
     }
 
     useEffect(() => {
@@ -226,6 +245,8 @@ export default function Game() {
         socket.on("activate_dropdown", onActivateDropdown);
         socket.on("correct_guess", onCorrectGuess);
         socket.on("incorrect_guess", onIncorrectGuess);
+        socket.on("update_round", onUpdateRound)
+        socket.on("end_game", onEndGame)
 
 
         return () => {
@@ -239,6 +260,9 @@ export default function Game() {
             socket.off("activate_dropdown", onActivateDropdown);
             socket.off("correct_guess", onCorrectGuess);
             socket.off("incorrect_guess", onIncorrectGuess);
+            socket.off("update_round", onUpdateRound)
+            socket.off("end_game", onEndGame)
+
 
         }
     }, [])
@@ -252,6 +276,7 @@ export default function Game() {
         players,
         curses,
         onClickPlayer,
+        selectedCurseIndex,
         setSelectedCurseIndex
     }
 
@@ -273,6 +298,10 @@ export default function Game() {
         song: currentSong,
         players,
     }
+    
+    const endProps: EndProps = {
+        players,
+    }
 
     return (
         <div>
@@ -282,11 +311,11 @@ export default function Game() {
             )}
             {
                 (gameState != loading) && (
-                    <div>
+                    <div className="min-h-screen bg-black">
                         {/* <h1>Round Type: {gameState}</h1>
                         <h1>Time: {timeRemaining}</h1> */}
                         <div className="w-full bg-black p-4 flex items-center justify-center">
-                            <FancyTimer timeRemaining={timeRemaining} totalTime={totalTime} />
+                            <FancyTimer timeRemaining={timeRemaining} totalTime={totalTime} currentRound={currentRound} totalRounds={totalRounds} />
                         </div>
 
                         {/* Debug info */}
@@ -306,6 +335,9 @@ export default function Game() {
                         )}
                         {gameState == resultsSequence && (
                             <ResultRoom {...resultProps} />
+                        )}
+                        {gameState == end && (
+                            <EndRoom {...endProps} />
                         )}
 
                     </div>

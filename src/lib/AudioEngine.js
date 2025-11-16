@@ -25,32 +25,32 @@ class AudioEngine {
     let newNode;
 
     switch (curseName) {
-      case "lowPass":
+      case "Low Pass Filter":
         newNode = this.audioContext.createBiquadFilter();
         newNode.type = "lowpass";
         newNode.frequency.value = 1000;
         break;
 
-      case "highPass":
+      case "High Pass Filter":
         newNode = this.audioContext.createBiquadFilter();
         newNode.type = "highpass";
         newNode.frequency.value = 1000;
         break;
 
-      case "distort":
+      case "Distortion":
         newNode = this.audioContext.createWaveShaper();
         newNode.curve = this.makeDistortionCurve(200);
         break;
 
-      case "slowDown":
+      case "Slow Down":
         this.audioElement.playbackRate = 0.5;
         return;
 
-      case "speedUp":
+      case "Speed Up":
         this.audioElement.playbackRate = 2.0;
         return;
 
-      case "bitCrush":
+      case "Bitcrush":
         const bufferSize = 4096;
         const crushFactor = 8; 
 
@@ -78,7 +78,7 @@ class AudioEngine {
         newNode = crusher;
         break;
 
-      case "reverb":
+      case "Reverb":
         newNode = this.audioContext.createConvolver();
 
         // Generate impulse response (fake reverb)
@@ -97,7 +97,7 @@ class AudioEngine {
         newNode.buffer = impulse;
         break;
 
-      case "chop":
+      case "Chop Up":
         const chopRate = 0.5; // cut every 0.5 seconds
         const chopGain = this.audioContext.createGain();
 
@@ -120,7 +120,7 @@ class AudioEngine {
         newNode = chopGain;
         break;
 
-      case "delay":
+      case "Echo":
         const delayTime = 0.3; // 300ms delay
         const feedbackAmount = 0.5; // how much echo repeats (0-1)
 

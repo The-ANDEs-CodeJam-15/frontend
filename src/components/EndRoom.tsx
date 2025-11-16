@@ -1,6 +1,7 @@
 import { getSocket } from "../lib/socket";
 import { useEffect, useState } from "react";
 import { Player } from "../lib/types";
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export type EndProps = {
   players: Player[];
@@ -10,10 +11,11 @@ const EndRoom: React.FC<EndProps> = ({
   players,
 }) => {
   const sortedPlayers = [...players].sort((a, b) => b.points - a.points);
+  const router = useRouter();
 
   //ADD SONG-PLAYING LOGIC
   return (
-    <main className="flex min-h-screen items-center justify-center bg-neutral-950 relative px-6">
+    <main className="flex min-h-screen items-start justify-center bg-neutral-950 relative px-6">
       {/* Center Column */}
       <div className="flex flex-col items-center gap-6">
 
@@ -21,7 +23,7 @@ const EndRoom: React.FC<EndProps> = ({
 
         {/* Leaderboard table */}
         <div className="w-full max-w-md mx-auto">
-          <h2 className="text-xl font-bold text-white mb-2">Leaderboard</h2>
+          <h2 className="text-xl font-bold text-white text-center mb-2">Leaderboard</h2>
 
           <table className="w-full border-collapse rounded-xl overflow-hidden">
             <thead className="bg-neutral-800 text-neutral-300 text-sm">
@@ -65,7 +67,7 @@ const EndRoom: React.FC<EndProps> = ({
         </div>
 
         <button
-            onClick={}
+            onClick={() => { router.push("/") }}
             className="flex w-full items-center justify-center rounded-full
             bg-emerald-400
             px-3 py-2 text-sm font-medium text-black transition"

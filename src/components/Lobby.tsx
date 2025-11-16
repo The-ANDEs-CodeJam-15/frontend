@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 
 export type LobbyProps = {
-  onHostRoom: (otps : { userName: string }) => Promise<void> | void;
+  onHostRoom: (otps: { userName: string }) => Promise<void> | void;
   onJoinRoom: (opts: { userName: string, enteredCode: string }) => Promise<void> | void;
   userName: string;
   setUserName: React.Dispatch<React.SetStateAction<string>>;
@@ -26,7 +26,7 @@ const Lobby: React.FC<LobbyProps> = ({
 
   const handleHost = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onHostRoom( { userName: userName?.trim() } );
+    await onHostRoom({ userName: userName?.trim() });
   };
 
   const handleJoin = async (e: React.FormEvent) => {
@@ -91,30 +91,30 @@ const Lobby: React.FC<LobbyProps> = ({
             </p>
           </div>
 
-<div className="relative w-full">
-    {/* Overlay display */}
-    <div
-      className="
+          <div className="relative w-full">
+            {/* Overlay display */}
+            <div
+              className="
         pointer-events-none absolute left-3 top-1/2 -translate-y-1/2
         text-sm tracking-[0.36em] text-neutral-300 z-10 font-mono
       "
-    >
-      {displayValue}
-    </div>
-          <input
-            type="text"
-            value={enteredCode}
-            onChange={(e) =>
-        setEnteredCode(e.target.value.toUpperCase().slice(0, CODE_LENGTH))
-      }
-      className="
+            >
+              {displayValue}
+            </div>
+            <input
+              type="text"
+              value={enteredCode}
+              onChange={(e) =>
+                setEnteredCode(e.target.value.toUpperCase().slice(0, CODE_LENGTH))
+              }
+              className="
         w-full rounded-xl border border-neutral-700 bg-neutral-900 px-3 py-2
         text-sm text-transparent caret-neutral-100 outline-none
         ring-0 transition focus:border-neutral-400 font-mono
         tracking-[0.36em]
       "
-          />
-  </div>
+            />
+          </div>
 
           <button
             type="submit"
@@ -124,6 +124,39 @@ const Lobby: React.FC<LobbyProps> = ({
             {isLoadingJoin ? "Joining..." : "Join room"}
           </button>
         </form>
+      </div>
+
+      {/* Info Tooltip */}
+      <div className="absolute bottom-4 text-neutral-400 text-xs">
+        <div className="relative group flex items-center justify-center">
+
+          {/* The small info button */}
+          <div className="
+      w-6 h-6 rounded-full bg-neutral-700 text-neutral-200
+      flex items-center justify-center text-sm cursor-pointer
+      group-hover:bg-neutral-600 transition
+    ">
+            ℹ
+          </div>
+
+          {/* Tooltip panel */}
+          <div className="
+      absolute bottom-8 left-1/2 -translate-x-1/2 w-64
+      bg-neutral-700 border border-neutral-600 text-neutral-300
+      text-xs px-3 py-2 rounded-lg shadow-lg opacity-0
+      group-hover:opacity-100 group-hover:translate-y-[-4px]
+      transition-all duration-200 pointer-events-none
+    ">
+            <p className="font-semibold mb-1">About the game</p>
+            <p>
+              Guess the Song <span className="italic">(but Cursed)</span> is a
+              multiplayer game where players distort each other's songs with earned
+              curses, then try to guess it under time pressure. Earn points,
+              sabotage friends, and survive the chaos!
+            </p>
+          </div>
+
+        </div>
       </div>
     </main>
   );
