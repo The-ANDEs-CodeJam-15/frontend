@@ -7,19 +7,20 @@ import { getSocket } from "../lib/socket";
 import { useEffect, useState } from "react";
 import { LobbyProps } from "../components/Lobby";
 import { WaitingRoomProps } from "../components/WaitingRoom";
-
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function Home() {
   const [isLoadingHost, setLoadingHost] = useState(false);
   const [isLoadingJoin, setLoadingJoin] = useState(false);
-  const [isHost, setHost] = useState(false);
-  const [isStarting, setStarting] = useState(false);
+  const [isHost, setHost]               = useState(false);
+  const [isStarting, setStarting]       = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
-  const [userName, setUserName] = useState<string>("Player");
-  const [inRoom, setInRoom] = useState(false);
-  const [roomCode, setRoomCode] = useState("");
+  const [userName, setUserName]         = useState<string>("");
+  const [inRoom, setInRoom]             = useState(false);
+  const [roomCode, setRoomCode]         = useState("");
 
   const socket = getSocket();
+  const router = useRouter();
 
   const handleHostRoom = async ({ userName }: { userName: string }) => {
     try {
@@ -44,11 +45,16 @@ export default function Home() {
       setLoadingJoin(false);
     }, 5000);
     
-    socket.emit("join_room", { roomCode: enteredCode, username: userName });
+    socket.emit("join_room", { roomCode: enteredCode, userName: userName });
     
     // The response will come via the "room_joined" event
     // You could also add error handling for "join_failed" event
   };
+
+  const handleStart = async () => {
+    socket.emit("request_start_game")
+    //start the match, for host only; if server deems valid, all clients will be directed to game page
+  }
 
   const onRoomCreated = ({ roomCode } : { roomCode: string }) => {
     onRoomJoin({ roomCode })
@@ -64,23 +70,29 @@ export default function Home() {
 
   const onJoinError = () => {
     setErrorMessage("Room does not exist!")
-    setLoadingJoin(false)
+    setLoadingJoin(false);
   }
 
-  const handleStart = async () => {
-    //start the match, for host only; if server deems valid, all clients will be directed to game page
+  const onGameStarting = () => {
+    router.push('/game')
+    //to new page
   }
 
   useEffect(() => {
-  socket.on("room_created", onRoomCreated);
-  socket.on("room_joined", onRoomJoin);
-  socket.on("join_error", onJoinError);
-  
-  return () => {
-    socket.off("room_created", onRoomCreated);
-    socket.off("room_joined", onRoomJoin);
-  };
-}, []);
+    socket.on("room_joined", onRoomJoin);
+    socket.on("room_created", onRoomCreated);
+    socket.on("room_joined", onRoomJoin);
+    socket.on("join_error", onJoinError);
+    socket.on("game_starting", onGameStarting);
+    
+    return () => {
+      socket.off("room_joined", onRoomJoin);
+      socket.off("room_created", onRoomCreated);
+      socket.off("room_joined", onRoomJoin);
+      socket.off("join_error", onJoinError);
+      socket.off("game_starting", onGameStarting);
+    };
+  }, []);
 
   const lobbyProps: LobbyProps = {
     onHostRoom: handleHostRoom,
@@ -100,11 +112,6 @@ export default function Home() {
     isStarting,
   }
 
-  //const activePanel = inRoom ? (<WaitingRoom {...waitingRoomProps}/>) : (<Lobby {...lobbyProps} />)
-
-  useEffect(() => {
-    socket.on("room_joined", onRoomJoin);
-  }, []);
 
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-neutral-950 overflow-hidden">

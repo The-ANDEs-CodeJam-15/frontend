@@ -1,5 +1,6 @@
 // components/RoomLobby.tsx
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 
 export type WaitingRoomProps = {
   onStart: () => Promise<void> | void;
@@ -33,13 +34,13 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
         <div className="mb-6 h-px bg-gradient-to-r from-transparent via-neutral-700 to-transparent" />
 
         {/* Start game */}
-        <div className="mb-6 space-y-2">
+        <div className="mb-6">
           {isHost && (
             <button
             type="button"
             onClick={handleStart}
             disabled={isStarting}
-            className="flex-1 rounded-full justify-center bg-emerald-500 px-4 py-2 text-sm font-medium text-black transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-full bg-emerald-500 px-4 py-2 text-sm font-medium text-black transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isStarting ? "Starting…" : "Start game"}
           </button>
