@@ -6,8 +6,12 @@ import FancyTimer from "@/src/components/FancyTimer";
 import CurseRoom from "../../components/CurseRoom";
 import GuessRoom from "../../components/GuessRoom";
 import ResultRoom from "../../components/ResultRoom";
+import LoadingRoom from "../../components/LoadingRoom";
 import { CurseProps } from "../../components/CurseRoom";
 import { Curse, Player } from "@/src/lib/types";
+import { ResultProps } from "../../components/ResultRoom";
+import { Song } from "@/src/lib/types";
+import { GuessProps } from "../../components/GuessRoom";
 
 
 export default function Game() {
@@ -27,16 +31,25 @@ export default function Game() {
     const guessingSequence = 3;
     const resultsSequence = 4;
 
-    const appliedCurses: string[] = []
+    let appliedCurses: string[] = []
 
     const [totalTime, setTotalTime] = useState(0)
     const [timeRemaining, setTimeRemaining] = useState(0)
-    const [currentSong, setCurrentSong] = useState(null);
+    const [currentSong, setCurrentSong] = useState<Song | undefined>(undefined);
     const [currentSongAudio, setCurrentSongAudio] = useState(null);
     const [players, setPlayers] = useState<Player[]>([]);
     const [selectedCurseIndex, setSelectedCurseIndex] = useState(-1);
     const [gameState, setGameState] = useState(loading)
     const [curses, setCurses] = useState<Curse[]>([])
+    const [canCurse, setCanCurse] = useState(true);
+    const [entry, setEntry] = useState("");
+    const [dropDownData, setdropDownData] = useState<Song[]>([]);
+    const [isBlocked, setIsBlocked] = useState(false);
+    const [isCorrect, setIsCorrect] = useState(false);
+    const [guessed, setGuessed] = useState(false);
+    const [newCurses, setNewCuses] = useState(0);
+
+    const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
     //audio + AudioEngine references
     const audioRef = useRef<HTMLAudioElement>(null);
@@ -55,6 +68,7 @@ export default function Game() {
 
     const doCurse = ({ opSessionID }: { opSessionID: string }) => {
         socket.emit("curse_player", { opSessionID, selectedCurseIndex })
+        setCanCurse(false);
     }
 
     const onClickPlayer = ({ opSessionID }: { opSessionID: string }) => {
@@ -81,6 +95,7 @@ export default function Game() {
         console.log("Curse sequence starting, received song data");
         setCurrentSongAudio(currentSongAudio);
         setCurses(curses);
+        setCanCurse(true);
         setGameState(curseSequence);
 
         if (currentSongAudio && audioRef.current) {
@@ -99,7 +114,18 @@ export default function Game() {
         }
     }
 
+    const onSetCurseInventory = ({ curses }: { curses: Curse[] }) => {
+        setSelectedCurseIndex(-1)
+        setCurses(curses);
+        setCanCurse(true);
+    }
+
     const onGuessingStarted = () => {
+        setIsBlocked(false);
+        setIsCorrect(false);
+        setGuessed(false);
+        setNewCuses(0);
+        
         console.log("Guessing sequence starting");
         setGameState(guessingSequence);
 
@@ -118,7 +144,10 @@ export default function Game() {
         }
     }
 
-    const onResultsStarted = () => {
+    const onResultsStarted = ({ song, players }: { song: Song, players: Player[] }) => {
+        setPlayers(players);
+        appliedCurses = [];
+        setCurrentSong(song)
         console.log("Results sequence starting");
         setGameState(resultsSequence);
 
@@ -135,22 +164,82 @@ export default function Game() {
         appliedCurses.push(curseToApply);
     }
 
+    //cooldown and filtering (PROBABLY DOESN'T WORK)
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setEntry(value);
+
+        if (value.length > 0) {
+            socket.emit("get_dropdown_options", { entry: value });
+        } else {
+            setdropDownData([]);
+        }
+
+        // // Clear previous timer
+        // if (debounceTimer.current) {
+        //     clearTimeout(debounceTimer.current);
+        // }
+
+        // // Set a new timer
+        // debounceTimer.current = setTimeout(() => {
+
+        // }, 1000);
+    };
+
+    const onActivateDropdown = ({ dropDownData }: { dropDownData: Song[] }) => {
+        setdropDownData(dropDownData);
+    }
+
+    const onSelectSong = (song: Song) => {
+        setdropDownData([]);
+        const newEntry = song.name + " - " + song.artist;
+        setEntry(newEntry);
+    };
+
+    const onSubmitSong = (trackID: number) => {
+        console.log("Submitting", trackID)
+        socket.emit("submit_guess", { trackID })
+    }
+
+    const onCorrectGuess = ({ newCurses }: { newCurses: number}) => {
+        setIsBlocked(true);
+        setIsCorrect(true);
+        setGuessed(true);
+        setNewCuses(newCurses);
+    }
+    
+    const onIncorrectGuess = () => {
+        setIsBlocked(false);
+        setIsCorrect(false);
+        setGuessed(true);
+    }
+
     useEffect(() => {
         socket.emit("ready_status", {});
         socket.on("initial_countdown", onInitialCountdown);
         socket.on("timer_update", onTimerUpdate);
         socket.on("cursing_started", onCursingStarted);
+        socket.on("set_curse_inventory", onSetCurseInventory);
         socket.on("guessing_started", onGuessingStarted);
         socket.on("results_started", onResultsStarted);
         socket.on("apply_curse", onApplyCurse);
+        socket.on("activate_dropdown", onActivateDropdown);
+        socket.on("correct_guess", onCorrectGuess);
+        socket.on("incorrect_guess", onIncorrectGuess);
+
 
         return () => {
             socket.off("initial_countdown", onInitialCountdown);
             socket.off("timer_update", onTimerUpdate);
             socket.off("cursing_started", onCursingStarted);
+            socket.off("set_curse_inventory", onSetCurseInventory);
             socket.off("guessing_started", onGuessingStarted);
             socket.off("results_started", onResultsStarted);
             socket.off("apply_curse", onApplyCurse);
+            socket.off("activate_dropdown", onActivateDropdown);
+            socket.off("correct_guess", onCorrectGuess);
+            socket.off("incorrect_guess", onIncorrectGuess);
+
         }
     }, [])
 
@@ -166,38 +255,58 @@ export default function Game() {
         setSelectedCurseIndex
     }
 
+    const guessProps: GuessProps = {
+        entry,
+        setEntry,
+        dropDownData,
+        onSelectSong,
+        onSubmitSong,
+        handleChange,
+        isBlocked,
+        setIsBlocked,
+        isCorrect,
+        guessed,
+        newCurses,
+    }
+
+    const resultProps: ResultProps = {
+        song: currentSong,
+        players,
+    }
+
     return (
         <div>
             <audio ref={audioRef} className="hidden" crossOrigin="anonymous" />
-            {
-                (gameState == loading) && <h1>LOADING...</h1>
-            }
+            {(gameState == loading) && (
+                <LoadingRoom />
+            )}
             {
                 (gameState != loading) && (
                     <div>
-                        <h1>Round Type: {gameState}</h1>
-                        <h1>Time: {timeRemaining}</h1>
-                        <FancyTimer {...timerProps} />
-
-                        {/* Debug info */}
-                        <div className="mt-4 text-sm">
-                            <p>Audio loaded: {currentSongAudio ? 'Yes' : 'No'}</p>
-                            <p>Audio playing: {audioRef.current && !audioRef.current.paused ? 'Yes' : 'No'}</p>
+                        {/* <h1>Round Type: {gameState}</h1>
+                        <h1>Time: {timeRemaining}</h1> */}
+                        <div className="w-full bg-black p-4 flex items-center justify-center">
+                            <FancyTimer timeRemaining={timeRemaining} totalTime={totalTime} />
                         </div>
 
+                        {/* Debug info */}
+                        {/* <div className="mt-4 text-sm">
+                            <p>Audio loaded: {currentSongAudio ? 'Yes' : 'No'}</p>
+                            <p>Audio playing: {audioRef.current && !audioRef.current.paused ? 'Yes' : 'No'}</p>
+                        </div> */}
+
+                        {/* {gameState == loading && (
+                            <LoadingRoom />
+                        )} */}
                         {gameState == curseSequence && (
                             <CurseRoom {...curseProps} />
                         )}
                         {gameState == guessingSequence && (
-                            <GuessRoom />
+                            <GuessRoom {...guessProps} />
                         )}
-                        {/* {gameState == resultsSequence && (
-                            <ResultRoom
-                            {guess: Song,
-                            song: Song,
-                            players: players,}
-                            />
-                        )} */}
+                        {gameState == resultsSequence && (
+                            <ResultRoom {...resultProps} />
+                        )}
 
                     </div>
                 )

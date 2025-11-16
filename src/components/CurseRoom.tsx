@@ -62,9 +62,6 @@ const CurseRoom: React.FC<CurseProps> = ({
 
         </div>
 
-        {/* Spacer between players and curses */}
-        <div className="h-12" />
-
         {/* Curses */}
         <div className="flex flex-col gap-2 w-full">
           <span className="font-bold text-neutral-100 text-left w-full">Your curses:</span>
@@ -74,11 +71,6 @@ const CurseRoom: React.FC<CurseProps> = ({
             ))}
           </div>
         </div>
-      </div>
-
-      {/* Timer - Right side */}
-      <div className="absolute right-6 top-1/2 -translate-y-1/2">
-        <FancyTimer timeRemaining={timeRemaining} totalTime={totalTime} />
       </div>
     </main>
   );

@@ -47,7 +47,7 @@ const Icon: React.FC<IconProps> = ({
         </div>
 
         <div className="text-center">
-            <div className="${boldText ? 'font-bold' : 'font-normal'} text-neutral-50 font-medium text-sm truncate max-w-[80px]">
+            <div className={`${boldText ? 'font-bold' : 'font-normal'} text-white font-medium text-sm truncate max-w-[80px]`}>
                 {label}
             </div>
             <div className="text-xs text-neutral-400 font-mono">

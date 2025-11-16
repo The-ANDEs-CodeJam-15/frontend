@@ -1,20 +1,14 @@
 import { getSocket } from "../lib/socket";
 import { useEffect, useState } from "react";
-import { Player, Song } from "../lib/types";
-import FancyTimer from "./FancyTimer";
+import { Player } from "../lib/types";
 
-export type ResultProps = {
-  song?: Song;
+export type EndProps = {
   players: Player[];
 };
 
-const ResultRoom: React.FC<ResultProps> = ({
-  song,
+const EndRoom: React.FC<EndProps> = ({
   players,
 }) => {
-  const totalTime = 5;
-  const [timeRemaining, setTimeRemaining] = useState(totalTime);
-
   const sortedPlayers = [...players].sort((a, b) => b.points - a.points);
 
   //ADD SONG-PLAYING LOGIC
@@ -23,23 +17,7 @@ const ResultRoom: React.FC<ResultProps> = ({
       {/* Center Column */}
       <div className="flex flex-col items-center gap-6">
 
-        {/* {errorMessage && (
-          <div className="mb-4 rounded-xl bg-red-900/40 px-3 py-2 text-sm text-red-200">
-            {errorMessage}
-          </div>
-        )} */}
-
-        {/* <h1 className="text-2xl font-black">Round {round}</h1> */}
-
-        {/* <h2 className="text-2xl text-white font-extrabold">Answer:</h2> */}
-
-        <h1 className="text-2xl text-white font-extrabold">Answer: {song ? song.name : ""} - {song ? song.artist : ""}</h1>
-
-        {/* Song cover */}
-        {song && <img
-          src={song.cover}
-          className="w-100 h-100 gap-2 border-2 border-neutral-700"
-        />}
+        <h1 className="text-2xl text-white font-black">GAME FINISHED</h1>
 
         {/* Leaderboard table */}
         <div className="w-full max-w-md mx-auto">
@@ -85,9 +63,19 @@ const ResultRoom: React.FC<ResultProps> = ({
             </tbody>
           </table>
         </div>
+
+        <button
+            onClick={}
+            className="flex w-full items-center justify-center rounded-full
+            bg-emerald-400
+            px-3 py-2 text-sm font-medium text-black transition"
+          >
+            New Game
+          </button>
+
       </div>
     </main>
   );
 };
 
-export default ResultRoom;
+export default EndRoom;

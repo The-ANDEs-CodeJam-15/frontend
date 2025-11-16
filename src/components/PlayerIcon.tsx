@@ -32,11 +32,11 @@ const PlayerIcon: React.FC<PlayerIconProps> = ({
 
     const iconProps: IconProps = {
         label: player.userName, 
-        initials: player.userName,//getInitials(player.userName), 
+        initials: getInitials(player.userName), 
         value: player.points, 
         color: player.color,
-        size: 16, 
-        boldText: isMe, 
+        size: 48, 
+        boldText: isMe,
         selected: selected,
         onClick: () => onClick({ opSessionID }),
     }

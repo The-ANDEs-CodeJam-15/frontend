@@ -52,7 +52,7 @@ class AudioEngine {
 
       case "bitCrush":
         const bufferSize = 4096;
-        const crushFactor = 8; // how much to reduce bit depth (higher = more lo-fi)
+        const crushFactor = 8; 
 
         const crusher = this.audioContext.createScriptProcessor(
           bufferSize,
@@ -79,7 +79,6 @@ class AudioEngine {
         break;
 
       case "reverb":
-        // Create convolver for reverb
         newNode = this.audioContext.createConvolver();
 
         // Generate impulse response (fake reverb)
@@ -90,7 +89,6 @@ class AudioEngine {
         for (let channel = 0; channel < 2; channel++) {
           const channelData = impulse.getChannelData(channel);
           for (let i = 0; i < length; i++) {
-            // Exponential decay for natural reverb tail
             channelData[i] =
               (Math.random() * 2 - 1) * Math.pow(1 - i / length, 2);
           }
@@ -105,8 +103,8 @@ class AudioEngine {
 
         // Oscillate between 0 (silent) and 1 (audible)
         const lfo = this.audioContext.createOscillator();
-        lfo.frequency.value = 1 / chopRate; // Hz (2 Hz = every 0.5 seconds)
-        lfo.type = "square"; // Sharp on/off cuts
+        lfo.frequency.value = 1 / chopRate; // Hz
+        lfo.type = "square"; // square waves! I love square waves!
 
         // Offset so it goes 0 to 1 instead of -1 to 1
         const offset = this.audioContext.createConstantSource();
@@ -135,9 +133,8 @@ class AudioEngine {
         const wetGain = this.audioContext.createGain();
         wetGain.gain.value = 0.6; // mix level
 
-        // Connect: input -> delay -> feedback loop -> output
         delayNode.connect(feedback);
-        feedback.connect(delayNode); // feedback loop!
+        feedback.connect(delayNode); 
         delayNode.connect(wetGain);
 
         newNode = delayNode;
@@ -176,10 +173,8 @@ class AudioEngine {
 
   clearCurses() {
     if (!this.audioContext) return;
-    // Reset element-based effects
     this.audioElement.playbackRate = 1;
 
-    // Disconnect and remove all node-based effects
     this.activeEffects.forEach(({ node }) => {
       try {
         node.disconnect();
@@ -188,7 +183,6 @@ class AudioEngine {
 
     this.activeEffects = [];
 
-    // Reconnect the default pipeline
     this.source.disconnect();
     this.source.connect(this.effectNode).connect(this.output);
   }
